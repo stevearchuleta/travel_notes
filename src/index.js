@@ -19,32 +19,96 @@ const express = require('express'); // require the express dependency
 // Pass apollo-server-express dependency to the Node.js require method; allows me to serve data as a GraphQL API
 // =========================
 const { ApolloServer, gql } = require('apollo-server-express');
+
+// =========================
+// Import .env configuration file
+// =========================
+require('dotenv').config();
+
+// =========================
+// Import db.js file
+// =========================
+const db = require('./db');
+
+// =========================
+// Import my all of my database model codes
+// This is made possible by the export.modules object in my models index.js file
+// =========================
+const models = require('./models');
+
+// =========================
+// Run my server on a port that is either specified in my .env file or port 4000
+// Dynamically sets the port in the Node .env environment or port 4000 when no port is specified
+// =========================
 const port = process.env.PORT || 4000;
 
-// app.get('/', (req, res) => {
-//   res.send('Hello Madeira Traveller!!!');
-// });
+// =========================
+// Store DB_HOST value into its own variable
+// =========================
+const DB_HOST = process.env.DB_HOST;
 
-// app.listen(
-//   port,
-//   console.log(`🌎 Server is running at http://localhost:${port}!`)
-// );
+let notes = [
+  {
+    id: '1',
+    content:
+      'Arrived at Cristiano Ronaldo International Airport on Madeira Island; Airport Code: FNC',
+    author: 'Mr. & Mrs. Carter'
+  },
+  { id: '2', content: 'Rented a car', author: 'Fred Miller & Michael Smith' },
+  {
+    id: '3',
+    content: 'Drove around Funchal and then to Prazeres',
+    author: 'Alicia and Peter Silva'
+  },
+  {
+    id: '4',
+    content: 'Checked into the Jardim Atlantico Hotel',
+    author: 'Steve Archuleta & Randy Neely'
+  }
+];
 
 // =========================
-// Construct a schema using GraphQL schema language
+// SCHEMA using GraphQL schema language
 // =========================
 const typeDefs = gql`
+  type Note {
+    id: ID
+    content: String
+    author: String
+  }
+
   type Query {
     hello: String
+    notes: [Note!]
+    note(id: ID!): Note
+  }
+
+  type Mutation {
+    newNote(content: String!): Note
   }
 `;
 
 // =========================
-// Provide resolver functions for my schema files
+// Provide RESOLVER functions for my schema files
 // =========================
 const resolvers = {
   Query: {
-    hello: () => 'Hello Travellers!'
+    hello: () => 'Hello Travellers!',
+    notes: () => notes,
+    note: (parent, args) => {
+      return notes.find(note => note.id === args.id);
+    }
+  },
+  Mutation: {
+    newNote: (parent, args) => {
+      let noteValue = {
+        id: String(notes.length + 1),
+        content: args.content,
+        author: 'Randy Neely'
+      };
+      notes.push(noteValue);
+      return noteValue;
+    }
   }
 };
 
@@ -54,19 +118,24 @@ const resolvers = {
 const app = express();
 
 // =========================
+// Call MongoDB connection
+// =========================
+db.connect(DB_HOST);
+
+// =========================
 // Apollo Server Setup
 // =========================
 const server = new ApolloServer({ typeDefs, resolvers });
 
 // =========================
-// Apply GraphQL Middleware (...and set path to /api)
+// Apply GraphQL Middleware (and set path to /api)
 // Therefore, because of the app.listen() method below, when I run this server, the app express() object will be available at http://localhost:4000/api
 // =========================
 server.applyMiddleware({ app, path: '/api' });
 
 // =========================
 // Make my app locally available on port 400 http://localhost:4000
-// Template leteral syntax (is a template string that allows for a JS embedded exression, such as: ${...})
+// Template literal syntax (is a template string that allows for a JS embedded expression, such as: ${...})
 // =========================
 app.listen({ port }, () => {
   console.log(
