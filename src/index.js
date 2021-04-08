@@ -68,9 +68,9 @@ let notes = [
 ];
 
 // =========================
-// SCHEMA using GraphQL schema language
+// GRAPHQL SCHEMA using GraphQL schema language
 // =========================
-const typeDefs = gql`
+const typeDefinitions = gql`
   type Note {
     id: ID
     content: String
@@ -79,35 +79,42 @@ const typeDefs = gql`
 
   type Query {
     hello: String
-    notes: [Note!]
-    note(id: ID!): Note
+    notes: [Note]
+    note(id: ID): Note
   }
 
   type Mutation {
-    newNote(content: String!): Note
+    newNote(content: String): Note
   }
 `;
 
 // =========================
 // Provide RESOLVER functions for my schema files
 // =========================
-const resolvers = {
+const resolverFunctions = {
   Query: {
     hello: () => 'Hello Travellers!',
-    notes: () => notes,
-    note: (parent, args) => {
-      return notes.find(note => note.id === args.id);
+    notes: async () => {
+      return await models.Note.find();
+    },
+    note: async (parent, args) => {
+      return await models.Note.findById(args.id);
     }
   },
   Mutation: {
-    newNote: (parent, args) => {
-      let noteValue = {
-        id: String(notes.length + 1),
+    newNote: async (parent, args) => {
+      return await models.Note.create({
         content: args.content,
-        author: 'Randy Neely'
-      };
-      notes.push(noteValue);
-      return noteValue;
+        author: 'Esteban Gilberto de Sousa Archuleta'
+      });
+
+      // let noteValue = {
+      //   id: String(notes.length + 1),
+      //   content: args.content,
+      //   author: 'Randy Neely'
+      // };
+      // notes.push(noteValue);
+      // return noteValue;
     }
   }
 };
@@ -121,11 +128,12 @@ const app = express();
 // Call MongoDB connection
 // =========================
 db.connect(DB_HOST);
+console.log(`🍃  ==> Connected to MongoDB`);
 
 // =========================
 // Apollo Server Setup
 // =========================
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({ typeDefinitions, resolverFunctions });
 
 // =========================
 // Apply GraphQL Middleware (and set path to /api)
