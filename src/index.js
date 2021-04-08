@@ -68,9 +68,15 @@ let notes = [
 ];
 
 // =========================
+<<<<<<< HEAD
 // GRAPHQL SCHEMA using GraphQL schema language
 // =========================
 const typeDefinitions = gql`
+=======
+// SCHEMA using GraphQL schema language
+// =========================
+const typeDefs = gql`
+>>>>>>> 6e1322c6fcaecab0dd90e5d127e67962d405e9b2
   type Note {
     id: ID
     content: String
@@ -79,12 +85,21 @@ const typeDefinitions = gql`
 
   type Query {
     hello: String
+<<<<<<< HEAD
     notes: [Note]
     note(id: ID): Note
   }
 
   type Mutation {
     newNote(content: String): Note
+=======
+    notes: [Note!]
+    note(id: ID!): Note
+  }
+
+  type Mutation {
+    newNote(content: String!): Note
+>>>>>>> 6e1322c6fcaecab0dd90e5d127e67962d405e9b2
   }
 `;
 
@@ -94,6 +109,7 @@ const typeDefinitions = gql`
 const resolverFunctions = {
   Query: {
     hello: () => 'Hello Travellers!',
+<<<<<<< HEAD
     notes: async () => {
       return await models.Note.find();
     },
@@ -115,6 +131,22 @@ const resolverFunctions = {
       // };
       // notes.push(noteValue);
       // return noteValue;
+=======
+    notes: () => notes,
+    note: (parent, args) => {
+      return notes.find(note => note.id === args.id);
+    }
+  },
+  Mutation: {
+    newNote: (parent, args) => {
+      let noteValue = {
+        id: String(notes.length + 1),
+        content: args.content,
+        author: 'Randy Neely'
+      };
+      notes.push(noteValue);
+      return noteValue;
+>>>>>>> 6e1322c6fcaecab0dd90e5d127e67962d405e9b2
     }
   }
 };
@@ -128,7 +160,10 @@ const app = express();
 // Call MongoDB connection
 // =========================
 db.connect(DB_HOST);
+<<<<<<< HEAD
 console.log(`🍃  ==> Connected to MongoDB`);
+=======
+>>>>>>> 6e1322c6fcaecab0dd90e5d127e67962d405e9b2
 
 // =========================
 // Apollo Server Setup
